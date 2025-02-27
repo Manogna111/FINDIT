@@ -1,0 +1,214 @@
+---
+title: "file_crawler"
+author: "Manogna"
+date: "2024-09-04"
+output: html_document
+---
+
+
+```{r}
+#Load libraries
+
+library(tidyverse)
+library(haven)
+library(tools)
+library(data.table)
+library(parallel)
+
+#Get_data
+
+start_path = "../data/raw_data/20200430"
+
+all_files <- list.files(start_path, full.names = TRUE, recursive = TRUE)
+
+#Create inventory w/ modified time and file path information
+file_inventory <- data.frame()
+
+for (file in all_files){ 
+  
+  file_infor <- file.info(file)
+  
+  file_infor$file_path <- file
+  
+  
+  file_inventory <- rbind(file_inventory, file_infor)
+  
+}
+
+#Create inventory w/ exact type of file
+
+file_inventory_type <- data.frame()
+
+for (file in all_files){ 
+  
+  file_type <- file_ext(file)
+  
+  temp_df <- data.frame(file_path = file, file_type = file_type, stringsAsFactors = FALSE)
+
+  file_inventory_type <- rbind(file_inventory_type, temp_df)
+  
+}
+
+#Identify if file is greater than or less than 1 MB
+file_inventory <-  file_inventory %>%
+  mutate(file_size = ifelse(size > 100000000, "greater than 1 GB", "less than 1GB"))
+
+
+
+```
+
+```{r}
+# Load required libraries
+library(parallel)
+library(data.table)
+library(haven)  # For reading SAS files
+library(tools)  # For file_ext()
+
+# Define the MRN to search for
+specific_mrn <- "2759"  # Replace with the MRN you want to count
+
+# Function to process each file
+process_file <- function(file, mrn_to_count) {
+  
+  # Extract file extension
+  file_type <- file_ext(file)
+  
+  # Check the file type and process accordingly
+  if (file_type == 'sas7bdat') {
+  file_test <- read_sas(file)  # Read the SAS file
+  
+  # Count occurrences of the specific MRN (assuming 'mrn' is in the first column)
+  mrn_count <- sum(file_test[[1]] == mrn_to_count, na.rm = TRUE)
+  
+  # Return the results as a data.table
+  return(data.table(file = basename(file), mrn_count = mrn_count))
+} else if (file_type == 'sas') {
+  file_test <- read_sas(file)  # Read the SAS file
+  
+  # Count occurrences of the specific MRN (assuming 'mrn' is in the first column)
+  mrn_count <- sum(file_test[[1]] == mrn_to_count, na.rm = TRUE)
+  
+  # Return the results as a data.table
+  return(data.table(file = basename(file), mrn_count = mrn_count))}
+  else if (file_type == 'xlsx') {
+  file_test <- readxl::read_excel(file)  # Read the Excel file
+  
+  # Count occurrences of the specific MRN
+  mrn_count <- sum(file_test[[1]] == mrn_to_count, na.rm = TRUE)
+  
+  return(data.table(file = basename(file), mrn_count = mrn_count))
+} else if (file_type == 'csv') {
+  file_test <- fread(file)  # Read the CSV file
+  
+  # Count occurrences of the specific MRN
+  mrn_count <- sum(file_test[[1]] == mrn_to_count, na.rm = TRUE)
+  
+  return(data.table(file = basename(file), mrn_count = mrn_count))
+} else {
+  # If not a recognized file type, return NA for mrn_count
+  return(data.table(file = basename(file), mrn_count = NA))
+}
+}
+
+
+# Get the number of cores available for parallel processing
+num_cores <- detectCores() - 1  # Use one less than the total number of cores
+
+# Create a cluster for parallel processing
+cl <- makeCluster(num_cores)
+
+# Ensure the necessary libraries and functions are available on each worker
+clusterEvalQ(cl, {
+  library(data.table)
+  library(haven)
+  library(tools)  # Required for file_ext()
+})
+
+# Export necessary variables and functions to the cluster
+clusterExport(cl, c("all_files", "process_file", "specific_mrn"))
+
+# Use parLapply to run the process_file function in parallel for each file
+file_results <- parLapply(cl, all_files, function(file) process_file(file, specific_mrn))
+
+# Stop the cluster after processing
+stopCluster(cl)
+
+# Combine the results into a single data.table
+file_mrn_counts <- rbindlist(file_results)
+
+
+```
+
+```{r}
+#Append all information onto one single directory
+
+file_inventory_updated <- file_inventory %>%
+    select('file_path', 'mtime', 'file_size') %>%
+    mutate(file_type = file_inventory_type[ , 'file_type']) %>%
+    mutate(file_name = basename(file_path),
+           folder_path = dirname(file_path),
+           folder_name = basename(folder_path)) %>%
+    mutate(mrn_count = file_mrn_counts[ , 'mrn_count']) %>%
+    select('folder_name','file_name','mrn_count', 'mtime','file_type', 'file_size')
+
+```
+
+
+```{r}
+# Define the path where you want to save the CSV
+output_dir <- "../data/processed_data/"
+output_file <- paste0(output_dir, "file_inventory_updated.csv")
+
+# Create the directory if it doesn't exist
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir)
+}
+
+library(readr)  # For write_csv()
+
+# Convert the `unique_mrn_count` column to numeric if it's not already
+file_inventory_updated$unique_mrn_count <- sapply(file_inventory_updated$unique_mrn_count, function(x) {
+  if (is.list(x)) {
+    # Extract the numeric value if x is a list
+    return(as.numeric(x[[1]]))
+  } else {
+    # Convert directly if it's not a list
+    return(as.numeric(x))
+  }
+})
+
+# Convert `mtime` column to character format
+file_inventory_updated$mtime <- as.character(file_inventory_updated$mtime)
+
+# If `file_size` is a factor, convert it to a character
+file_inventory_updated$file_size <- as.character(file_inventory_updated$file_size)
+
+# Define the path where you want to save the CSV
+output_dir <- "../data/processed_data/"
+output_file <- paste0(output_dir, "file_inventory_updated.csv")
+
+# Create the directory if it doesn't exist
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir)
+}
+
+
+write.csv(file_inventory_updated, file = output_file, row.names = FALSE)
+
+
+
+# Confirm the file has been written
+print(paste("File saved to:", "file_inventory_updated.csv"))
+```
+
+
+```{r}
+# else if (file_type == 'xlsx') {
+#     file_test <- read_excel(file)  # Read the Excel file
+#     
+#     # Count occurrences of the specific MRN (assuming 'mrn' is in the first column)
+#     mrn_count <- sum(file_test[[1]] == mrn_to_count, na.rm = TRUE)
+#     
+#     # Return the results as a data.table
+#     return(data.table(file = basename(file), mrn_count = mrn_count))
+# }
