@@ -17,7 +17,7 @@ library(parallel)
 
 #Get_data
 
-start_path = "../data/raw_data/20200430"
+start_path = "../data/raw_data/[folder]"
 
 all_files <- list.files(start_path, full.names = TRUE, recursive = TRUE)
 
@@ -152,6 +152,7 @@ file_inventory_updated <- file_inventory %>%
     select('folder_name','file_name','mrn_count', 'mtime','file_type', 'file_size')
 
 ```
+
 
 
 
