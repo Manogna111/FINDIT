@@ -32,8 +32,8 @@ The project develops tools called **"finders"** (or crawlers) that automatically
       - Goal: Make it easy for researchers to quickly determine what data is available for any given research participant.  
   
 - **This Year’s Hackathon**:  
- - Focus on optimizing **participant-first finder**
- - Improving technical documentation
+  - Focus on optimizing **participant-first finder**
+  - Improving technical documentation
 ---
 ## 🚀 Usage
 
