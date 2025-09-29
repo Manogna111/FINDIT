@@ -46,7 +46,7 @@ It captures file metadata (paths, names, sizes, modified times, and types) and, 
 An R-based workflow for **crawling directories based on patient MRNs** across multiple file types (CSV, Excel, SAS).  
 Optimized for large datasets with **parallel processing**.  
 
-```
+---
 ## 🚀 Future Directions
 
 - Improve automation for large-scale data workflows  
