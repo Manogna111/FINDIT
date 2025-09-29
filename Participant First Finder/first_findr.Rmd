@@ -1,5 +1,5 @@
 ---
-title: "first_findr"
+title: "participant_first_findr"
 author: "Manogna"
 date: "2024-09-04"
 output: html_document
@@ -152,6 +152,7 @@ file_inventory_updated <- file_inventory %>%
     select('folder_name','file_name','mrn_count', 'mtime','file_type', 'file_size')
 
 ```
+
 
 
 
