@@ -19,7 +19,7 @@ import traceback
 
 # Define the folder to crawl
 # ---------------------------
-start_path = "/Volumes/eccdb/TOTALXVII"  
+start_path = "[DEFINE FILE PATH]"  
 
 # ---------------------------
 # Function to process each file (parallelized)
