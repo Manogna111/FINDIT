@@ -7,7 +7,7 @@ import openpyxl  # For reading Excel files
 from multiprocessing import Pool, cpu_count
 
 # Get data
-start_path = "C:/Users/manog/Downloads/BIOHACKATHON/2025/data/raw_data/__MACOSX"
+start_path = "[DEFINE FILE PATH]"
 
 # Get all files recursively
 all_files = []
@@ -44,7 +44,7 @@ file_inventory['file_size'] = file_inventory['size'].apply(
 )
 
 # Define the MRN to search for
-specific_mrn = "32272"  # Replace with the MRN you want to count
+specific_mrn = "2357" #[ADD MRN INTEGER]  # Replace with the MRN you want to count
 
 # Function to count MRN in columns that contain "MRN" in the header
 def count_mrn_in_dataframe(df, mrn_to_count):
@@ -134,9 +134,10 @@ if __name__ == '__main__':
     # ---------------------------
     # Save CSV
     # ---------------------------
-    output_dir = ("C:/Users/manog/Downloads/BIOHACKATHON/2025/data/processed_data")
+    output_dir = ("[DEFINE FILE PATH]")
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, "participant_first_findr.csv")
 
     file_inventory_updated.to_csv(output_file, index=False)
     print(f"File saved to: {output_file}")
+
