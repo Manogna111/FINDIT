@@ -19,7 +19,7 @@ import traceback
 
 # Define the folder to crawl
 # ---------------------------
-start_path = "C:/Users/manog/Downloads/BIOHACKATHON/2025/Gibney_Kyla"  
+start_path = "[DEFINE FILE PATH]"  
 
 # ---------------------------
 # Function to process each file (parallelized)
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     # ---------------------------
     # Save CSV
     # ---------------------------
-    output_dir = ("C:/Users/manog/Downloads/BIOHACKATHON/2025/data/processed_data")
+    output_dir = ("DEFINE FILE PATH")
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, "file_inventory_updated.csv")
 
@@ -154,3 +154,4 @@ if __name__ == "__main__":
 
     file_inventory_updated.to_csv(output_file, index=False)
     print(f"File saved to: {output_file}")
+
